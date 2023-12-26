@@ -134,8 +134,23 @@ board = f"""
 
 """
 selectedPiece = ""
-while True:
+def whiteMove():
+    board = f"""
+  A B C D E F G H
+  _ _ _ _ _ _ _ _
+8|{spaces['A8']} {spaces['B8']} {spaces['C8']} {spaces['D8']} {spaces['E8']} {spaces['F8']} {spaces['G8']} {spaces['H8']}
+7|{spaces['A7']} {spaces['B7']} {spaces['C7']} {spaces['D7']} {spaces['E7']} {spaces['F7']} {spaces['G7']} {spaces['H7']}
+6|{spaces['A6']} {spaces['B6']} {spaces['C6']} {spaces['D6']} {spaces['E6']} {spaces['F6']} {spaces['G6']} {spaces['H6']}
+5|{spaces['A5']} {spaces['B5']} {spaces['C5']} {spaces['D5']} {spaces['E5']} {spaces['F5']} {spaces['G5']} {spaces['H5']}
+4|{spaces['A4']} {spaces['B4']} {spaces['C4']} {spaces['D4']} {spaces['E4']} {spaces['F4']} {spaces['G4']} {spaces['H4']}
+3|{spaces['A3']} {spaces['B3']} {spaces['C3']} {spaces['D3']} {spaces['E3']} {spaces['F3']} {spaces['G3']} {spaces['H3']}
+2|{spaces['A2']} {spaces['B2']} {spaces['C2']} {spaces['D2']} {spaces['E2']} {spaces['F2']} {spaces['G2']} {spaces['H2']}
+1|{spaces['A1']} {spaces['B1']} {spaces['C1']} {spaces['D1']} {spaces['E1']} {spaces['F1']} {spaces['G1']} {spaces['H1']}
+
+"""
     blocker = 0
+    blocker1 = 0
+    foundBlocker = False
     print(board)
     try:
         wChoiceP = input("White: Enter the coordinates of the piece you want to move: ")
@@ -148,10 +163,10 @@ while True:
                 break
         else:
             print("No valid piece selected.")
-            continue
+            return False
     except Exception:
         print("Enter the coordinate in this form: E4")
-        continue
+        return False
     
     try:
         wChoiceC = input("Enter the coordinates of the place you want the piece to go to: ")
@@ -160,7 +175,7 @@ while True:
                 raise Exception()
     except Exception:
         print("You have another piece in that spot.")
-        continue
+        return False
     tempList = []
     for i in wChoiceC:
         tempList.append(i)
@@ -169,7 +184,7 @@ while True:
         wChoiceCColumn = int(tempList[1])
     except ValueError:
         print("Enter the coordinate in this form: E4")
-        continue
+        return False
     tempList2 = []
     for i in origPos:
         tempList2.append(i)
@@ -177,47 +192,61 @@ while True:
     origPosColumn = int(origPos[1])
 
     if selectedPiece.piece == "P":
+        for j in whitePieces:
+            if origPosRow + str(origPosColumn+1) == j.position:
+                blocker1 = 3
+                break
+        else:
+            if wChoiceCColumn == blocker1 + 1:
+                print("Not valid pawn move.")
+                return False
+        for j in blackPieces:
+            if origPosRow + str(origPosColumn+1) == j.position:
+                blocker1 = 3
+                break
+        else:
+            if wChoiceCColumn == blocker1 + 1:
+                print("Not valid pawn move.")
+                return False
         if selectedPiece.moved:
             if origPosColumn - wChoiceCColumn != -1:
                 print("Not valid pawn move. ")
-                continue
+                return False
         else:
             if origPosColumn - wChoiceCColumn != -1:
                 if origPosColumn - wChoiceCColumn != -2:
                     print("Not valid pawn move. ")
-                    continue
+                    return False
         if selectedPiece.moved:
             if wChoiceCRow != origPosRow:
                 if spaces[wChoiceC] != "":
                     if int(letterToNumber(origPosRow)) - int(letterToNumber(wChoiceCRow)) != -1:
                         print("Not valid capture.")
-                        continue
+                        return False
                 else:
                     print("No piece to capture.")
-                    continue
+                    return False
         else:
             if wChoiceCRow != origPosRow:
                 print("Not a valid pawn move.")
-                continue
+                return False
         board = resetBoard(selectedPiece, wChoiceC, origPos)
-    possible_squares = []
-    foundBlocker = False
     if selectedPiece.piece == "R":
+        possible_squares = []
+        foundBlocker = False
+        foundBlackBlocker = False
         if wChoiceCColumn != origPosColumn and wChoiceCRow != origPosRow:
             print("Not valid rook move.")
-            break
+            return False
         for i in range(4):
-            foundBlackBlocker = False
             for j in range(8):
                 try:
                     if i == 0:
                         if origPosColumn+j > 8:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == origPosRow + str(origPosColumn+j):
                                 if origPosRow + str(origPosColumn+j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                                     break
                         if foundBlocker:
@@ -228,18 +257,15 @@ while True:
                         if foundBlackBlocker == False:
                             for k in blackPieces:
                                 if k.position == origPosRow + str(origPosColumn+j):
-                                    print(j)
                                     blackPieces.remove(k)
                                     possible_squares.append(origPosRow + str(origPosColumn+j))
                                     foundBlackBlocker = True
                     if i == 1:
                         if origPosColumn-j <= 0:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == origPosRow + str(origPosColumn-j):
                                 if origPosRow + str(origPosColumn-j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                                     break
                         if foundBlocker:
@@ -255,12 +281,10 @@ while True:
                                     foundBlackBlocker = True
                     if i == 2:
                         if int(letterToNumber(origPosRow))-j <= 0:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                                     break
                         if foundBlocker:
@@ -276,12 +300,10 @@ while True:
                                     foundBlackBlocker = True
                     if i == 3:
                         if int(letterToNumber(origPosRow))+j > 8:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                                     break
                         if foundBlocker:
@@ -296,7 +318,6 @@ while True:
                                     possible_squares.append(numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn))
                                     foundBlackBlocker = True
                 except TypeError or KeyError:
-                    foundBlackBlocker = False
                     break
             else:
                 foundBlocker = False
@@ -305,30 +326,27 @@ while True:
             board = resetBoard(selectedPiece, wChoiceC, origPos)
         else:
             print("Not valid rook move.")
-            continue
+            return False
     if selectedPiece.piece == "B":
         if wChoiceCRow == origPosRow:
             print(wChoiceCRow, origPosRow)
             print("Not a valid bishop move. 1")
-            continue
+            return False
         if wChoiceCColumn == origPosColumn:
             print("Not a valid bishop move. 2")
-            continue
+            return False
         possible_squares = []
         foundBlocker = False
         foundBlackBlocker = False
         for i in range(4):
-            foundBlackBlocker = False
             for j in range(8):
                 try:
                     if i == 0:
                         if origPosColumn+j > 8:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn+j):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn+j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                         if foundBlocker:
                             foundBlocker = False
@@ -343,12 +361,10 @@ while True:
                                     foundBlackBlocker = True
                     elif i == 1:
                         if origPosColumn+j > 8:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn+j):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn+j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                         if foundBlocker:
                             foundBlocker = False
@@ -363,12 +379,10 @@ while True:
                                     foundBlackBlocker = True
                     elif i == 2:
                         if origPosColumn-j <= 0:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn-j):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))+j)) + str(origPosColumn-j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                         if foundBlocker:
                             foundBlocker = False
@@ -383,12 +397,10 @@ while True:
                                     foundBlackBlocker = True
                     elif i == 3:
                         if origPosColumn-j <= 0:
-                            foundBlackBlocker = False
                             break
                         for l in whitePieces:
                             if l.position == numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn-j):
                                 if numberToLetter(str(int(letterToNumber(origPosRow))-j)) + str(origPosColumn-j) != origPos:
-                                    foundBlackBlocker = False
                                     foundBlocker = True
                         if foundBlocker:
                             foundBlocker = False
@@ -411,39 +423,36 @@ while True:
             board = resetBoard(selectedPiece, wChoiceC, origPos)
         else:
             print("Not valid bishop move.")
-            continue
-
-                
+            return False          
     if selectedPiece.piece == "K":
         if selectedPiece.moved:
             possible_squares = []
             if abs(wChoiceCColumn - origPosColumn) >= 2:
                 print("Not valid king move.")
-                continue
+                return False
             if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) >= 2:
                 print("Not valid king move.")
-                continue
+                return False
             board = resetBoard(selectedPiece, wChoiceC, origPos)
         else:
             possible_squares = []
             if abs(wChoiceCColumn - origPosColumn) >= 2:
                 print("Not valid king move.")
-                continue
+                return False
             if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) >= 2:
                 print("Not valid king move.")
-                continue
+                return False
             board = resetBoard(selectedPiece, wChoiceC, origPos)
-
     if selectedPiece.piece == "Q":
         pass
     if selectedPiece.piece == "H":
         if selectedPiece.moved:
             if abs(wChoiceCColumn - origPosColumn) >= 3:
                 print("Not valid knight move.")
-                continue
+                return False
             if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) >= 3:
                 print("Not valid knight move.")
-                continue
+                return False
             if abs(wChoiceCColumn - origPosColumn) == 1:
                 if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) == 2:
                     board = resetBoard(selectedPiece, wChoiceC, origPos)
@@ -456,35 +465,153 @@ while True:
                     board = resetBoard(selectedPiece, wChoiceC, origPos)
                 else:
                     print("Not valid knight move.")
-                    continue
+                    return False
             else:
                 print("Not valid knight move.")
-                continue
+                return False
             
         else:
             if abs(wChoiceCColumn - origPosColumn) >= 3:
                 print("Not valid knight move.")
-                continue
+                return False
             if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) >= 3:
                 print("Not valid knight move.")
-                continue
+                return False
             if abs(wChoiceCColumn - origPosColumn) == 1:
                 if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) == 2:
                     board = resetBoard(selectedPiece, wChoiceC, origPos)
-                    continue
+                    return False
             if abs(wChoiceCColumn - origPosColumn) == 2:
                 if abs(int(letterToNumber(wChoiceCRow)) - int(letterToNumber(origPosRow))) == 1:
                     board = resetBoard(selectedPiece, wChoiceC, origPos)
-                    continue
+                    return False
                 else:
                     print("Not valid knight move.")
-                    continue
+                    return False
             else:
                 print("Not valid knight move.")
-                continue
-            
+                return False
+    return True
+def blackMove():
+    board = f"""
+  A B C D E F G H
+  _ _ _ _ _ _ _ _
+8|{spaces['A8']} {spaces['B8']} {spaces['C8']} {spaces['D8']} {spaces['E8']} {spaces['F8']} {spaces['G8']} {spaces['H8']}
+7|{spaces['A7']} {spaces['B7']} {spaces['C7']} {spaces['D7']} {spaces['E7']} {spaces['F7']} {spaces['G7']} {spaces['H7']}
+6|{spaces['A6']} {spaces['B6']} {spaces['C6']} {spaces['D6']} {spaces['E6']} {spaces['F6']} {spaces['G6']} {spaces['H6']}
+5|{spaces['A5']} {spaces['B5']} {spaces['C5']} {spaces['D5']} {spaces['E5']} {spaces['F5']} {spaces['G5']} {spaces['H5']}
+4|{spaces['A4']} {spaces['B4']} {spaces['C4']} {spaces['D4']} {spaces['E4']} {spaces['F4']} {spaces['G4']} {spaces['H4']}
+3|{spaces['A3']} {spaces['B3']} {spaces['C3']} {spaces['D3']} {spaces['E3']} {spaces['F3']} {spaces['G3']} {spaces['H3']}
+2|{spaces['A2']} {spaces['B2']} {spaces['C2']} {spaces['D2']} {spaces['E2']} {spaces['F2']} {spaces['G2']} {spaces['H2']}
+1|{spaces['A1']} {spaces['B1']} {spaces['C1']} {spaces['D1']} {spaces['E1']} {spaces['F1']} {spaces['G1']} {spaces['H1']}
 
-
+"""
+    blocker = 0
+    blocker1 = 0
+    foundBlocker = False
+    print(board)
+    try:
+        wChoiceP = input("Black: Enter the coordinates of the piece you want to move: ")
+        if wChoiceP not in spaces:
+            raise Exception()
+        for i in blackPieces:
+            if wChoiceP == i.position:
+                selectedPiece = i
+                origPos = i.position
+                break
+        else:
+            print("No valid piece selected.")
+            return False
+    except Exception:
+        print("Enter the coordinate in this form: E4")
+        return False
+    
+    try:
+        wChoiceC = input("Enter the coordinates of the place you want the piece to go to: ")
+        for i in blackPieces:
+            if i.position == wChoiceC:
+                raise Exception()
+    except Exception:
+        print("You have another piece in that spot.")
+        return False
+    tempList = []
+    for i in wChoiceC:
+        tempList.append(i)
+    wChoiceCRow = tempList[0]
+    try:
+        wChoiceCColumn = int(tempList[1])
+    except ValueError:
+        print("Enter the coordinate in this form: E4")
+        return False
+    tempList2 = []
+    for i in origPos:
+        tempList2.append(i)
+    origPosRow = origPos[0]
+    origPosColumn = int(origPos[1])
+    if selectedPiece.piece == "P":
+        for j in blackPieces:
+            if origPosRow + str(origPosColumn-1) == j.position:
+                blocker1 = 6
+                break
+        else:
+            if wChoiceCColumn == blocker1 - 1:
+                print("Not valid pawn move. 1")
+                return False
+        for j in whitePieces:
+            if origPosRow + str(origPosColumn-1) == j.position:
+                blocker1 = 6
+                break
+        else:
+            if wChoiceCColumn == blocker1 - 1:
+                print("Not valid pawn move. 2")
+                return False
+        if selectedPiece.moved:
+            if origPosColumn - wChoiceCColumn != 1:
+                print("Not valid pawn move. 3")
+                return False
+        else:
+            if origPosColumn - wChoiceCColumn != 1:
+                if origPosColumn - wChoiceCColumn != 2:
+                    print("Not valid pawn move. 4")
+                    return False
+        if selectedPiece.moved:
+            if wChoiceCRow != origPosRow:
+                if spaces[wChoiceC] != "":
+                    if int(letterToNumber(origPosRow)) - int(letterToNumber(wChoiceCRow)) != -1:
+                        print("Not valid capture.")
+                        return False
+                else:
+                    print("No piece to capture.")
+                    return False
+        else:
+            if wChoiceCRow != origPosRow:
+                print("Not a valid pawn move. 5")
+                return False
+        board = resetBoard(selectedPiece, wChoiceC, origPos)
+    return True
         
                 
+
+def main():
+    white_move = True
+    print("Play Chess!")
+    while True:
+        if white_move:
+            while True:
+                if whiteMove():
+                    white_move = False
+                    break
+            continue
+        if white_move == False:
+            while True:
+                if blackMove():
+                    white_move = True
+                    break
+            continue
+
+    
+
+if __name__ == "__main__":
+    main()        
+                    
     
